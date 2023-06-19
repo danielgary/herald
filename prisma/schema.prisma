@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Message {
+  id                String              @id @unique @default(uuid())
+  created           DateTime            @default(now())
+  source            String
+  type              String
+  body              String
+  SubscriberMessage SubscriberMessage[]
+}
+
+model Subscription {
+  subscriberId String
+  filter       String
+
+  @@id([subscriberId, filter])
+}
+
+model SubscriberMessage {
+  subscriberId String
+  messageId    String
+  state        Int
+  errors       Int     @default(0)
+  errorText    String?
+  progress     Float?
+  progressText String?
+
+  message Message @relation(fields: [messageId], references: [id])
+
+  updatedAt DateTime
+
+  @@id([subscriberId, messageId])
+}
