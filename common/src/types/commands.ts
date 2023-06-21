@@ -33,11 +33,11 @@ export type AcknowledgeCommandArgs = {
   subscriberId: string;
 };
 
-export type RequeueCommandArgs = AcknowledgeCommandArgs;
+export type RequeueCommandArgs = AcknowledgeCommandArgs & {
+  errorText: string;
+};
 
-export type ProgressCommandArgs = {
-  messageId: string;
-  subscriberId: string;
+export type ProgressCommandArgs = AcknowledgeCommandArgs & {
   progress: number;
   text?: string;
 };

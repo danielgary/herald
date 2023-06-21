@@ -8,6 +8,7 @@ import * as fastq from 'fastq';
 import { publishActivity } from '../activities/publishActivity';
 import { processMessageForSubscriber } from './processMessageForSubscriber';
 import { acknowledgeMessageActivity } from '../activities/acknowledgeMessageActivity';
+import { requeueMessageActivity } from '../activities/requeueMessageActivity';
 
 export type HeraldServerArgs = {
   path?: string;
@@ -61,6 +62,7 @@ export async function createHeraldServer(args: HeraldServerArgs) {
     socket.on(KnownCommands.Subscribe, subscribeActivity);
     socket.on(KnownCommands.Publish, publishActivity);
     socket.on(KnownCommands.Acknowledge, acknowledgeMessageActivity);
+    socket.on(KnownCommands.Requeue, requeueMessageActivity);
     // socket.on(KnownCommands.Hello, helloActivity);
   });
 }

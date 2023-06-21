@@ -46,25 +46,23 @@ async function createTestClient(id: string, closeAfter = 1) {
   });
 
   await waitForConnection(c.socket);
-  const messages: any[] = [];
+
   c.socket.onAny((eventName, ...args) => {
-    if (eventName !== 'SUBSCRIBE_ACK') {
-      messages.push(eventName);
-      if (messages.length >= closeAfter) {
-        c.socket.disconnect();
-      }
+    if (c.messagesReceived >= closeAfter) {
+      c.socket.disconnect();
     }
   });
 
   return c;
 }
 
-beforeAll(() => {
+beforeAll(async () => {
   storage = new HeraldPrismaStorageProvider();
   server = createHeraldServer({
     port: PORT,
     storage: new HeraldPrismaStorageProvider(),
   });
+  await storage.__dangerous__flushAllData();
 });
 
 describe('client', () => {
@@ -162,6 +160,25 @@ describe('client', () => {
   });
 });
 
+it('Should retry messages 3 times before marking them as errored', async () => {
+  const sub = await createTestClient('errorSub', 3);
+  let executionCount = 0;
+  await sub.subscribe({ sender: 'errorSub' }, async () => {
+    executionCount++;
+    throw new Error(`Failed!`);
+  });
+
+  await sub.publish('failure', {});
+
+  await waitForDisconnect(sub.socket, 1000);
+
+  const errorCount = await storage.prisma.subscriberMessage.count({
+    where: { subscriberId: 'errorSub', state: MessageStates.ERROR },
+  });
+  expect(executionCount).toEqual(3);
+  expect(errorCount).toEqual(1);
+});
+
 afterAll(async () => {
-  await storage.__dangerous__flushAllData();
+  //await storage.__dangerous__flushAllData();
 });

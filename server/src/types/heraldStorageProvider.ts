@@ -1,3 +1,4 @@
+import { SubscriberMessage } from '@prisma/client';
 import { HeraldMessage, MessageStates } from 'common';
 
 export type UpdateSubscriberMessageArgs = {
@@ -49,6 +50,11 @@ export interface HeraldStorageProvider {
   getAllQueuedMessagesForSubscriber: (
     subscriberId: string
   ) => Promise<Array<{ messageId: string; message: HeraldMessage }>>;
+
+  getSubscriberMessage: (
+    subscriberId: string,
+    messageId: string
+  ) => Promise<SubscriberMessage>;
 
   __dangerous__flushAllData: () => Promise<void>;
 }

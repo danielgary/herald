@@ -18,6 +18,7 @@ export type SubscribeArgs = {
 };
 
 export class HeraldClient {
+  public messagesReceived;
   public socket: Socket;
   public subscriberId: string;
   private callbackTimeout: number;
@@ -34,7 +35,7 @@ export class HeraldClient {
 
   constructor(args: HeraldClientConstructorArgs) {
     this.subscriberId = args.subscriberId;
-
+    this.messagesReceived = 0;
     this.socket = io(args.serverAddress);
 
     this.callbackTimeout = args.callbackTimeout || 5000;
@@ -71,6 +72,7 @@ export class HeraldClient {
               subscriberId: this.subscriberId,
             });
           }
+          this.messagesReceived++;
         }
       }
     );

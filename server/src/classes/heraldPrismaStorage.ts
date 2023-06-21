@@ -4,7 +4,7 @@ import {
   UpdateSubscriberMessageArgs,
 } from '../types/heraldStorageProvider';
 import { uniq } from 'lodash';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, SubscriberMessage } from '@prisma/client';
 
 export class HeraldPrismaStorageProvider implements HeraldStorageProvider {
   public prisma: PrismaClient;
@@ -106,7 +106,7 @@ export class HeraldPrismaStorageProvider implements HeraldStorageProvider {
       },
       select: { errors: true },
     });
-    if (errors <= 3 && args.state === MessageStates.ERROR) {
+    if (errors < 3 && args.state === MessageStates.ERROR) {
       await this.prisma.subscriberMessage.update({
         where: { subscriberId_messageId: { messageId, subscriberId } },
         data: { state: MessageStates.QUEUED },
@@ -162,6 +162,15 @@ export class HeraldPrismaStorageProvider implements HeraldStorageProvider {
         type: nextMessage.message.type,
       };
     }
+  }
+
+  public async getSubscriberMessage(
+    subscriberId: string,
+    messageId: string
+  ): Promise<SubscriberMessage> {
+    return this.prisma.subscriberMessage.findFirst({
+      where: { subscriberId, messageId },
+    });
   }
 
   public async __dangerous__flushAllData(): Promise<void> {
