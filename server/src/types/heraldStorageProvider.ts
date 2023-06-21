@@ -56,5 +56,9 @@ export interface HeraldStorageProvider {
     messageId: string
   ) => Promise<SubscriberMessage>;
 
+  getStaleSubscriberMessages: (
+    maxAgeSeconds?: number
+  ) => Promise<Array<SubscriberMessage>>;
+
   __dangerous__flushAllData: () => Promise<void>;
 }

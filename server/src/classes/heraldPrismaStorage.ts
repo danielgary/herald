@@ -5,6 +5,7 @@ import {
 } from '../types/heraldStorageProvider';
 import { uniq } from 'lodash';
 import { PrismaClient, SubscriberMessage } from '@prisma/client';
+import { addMinutes, addSeconds } from 'date-fns';
 
 export class HeraldPrismaStorageProvider implements HeraldStorageProvider {
   public prisma: PrismaClient;
@@ -177,5 +178,16 @@ export class HeraldPrismaStorageProvider implements HeraldStorageProvider {
     await this.prisma.subscriberMessage.deleteMany();
     await this.prisma.subscription.deleteMany();
     await this.prisma.message.deleteMany();
+  }
+
+  public async getStaleSubscriberMessages(
+    maxAgeSeconds = 300
+  ): Promise<SubscriberMessage[]> {
+    return this.prisma.subscriberMessage.findMany({
+      where: {
+        updatedAt: { lte: addSeconds(new Date(), -maxAgeSeconds) },
+        state: MessageStates.PROCESSING,
+      },
+    });
   }
 }

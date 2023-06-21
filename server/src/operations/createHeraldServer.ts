@@ -1,7 +1,7 @@
 import { Server } from 'socket.io';
 import { HeraldStorageProvider } from '../types/heraldStorageProvider';
 import { HeraldSubscription } from '../types/heraldSubscription';
-import { KnownCommands } from 'common';
+import { KnownCommands, MessageStates } from 'common';
 import { subscribeActivity } from '../activities/subscribeActivity';
 import { HeraldMessageContext } from '../types/heraldMessageContext';
 import * as fastq from 'fastq';
@@ -9,11 +9,14 @@ import { publishActivity } from '../activities/publishActivity';
 import { processMessageForSubscriber } from './processMessageForSubscriber';
 import { acknowledgeMessageActivity } from '../activities/acknowledgeMessageActivity';
 import { requeueMessageActivity } from '../activities/requeueMessageActivity';
+import { setInterval } from 'timers';
 
 export type HeraldServerArgs = {
   path?: string;
   port?: number;
   storage: HeraldStorageProvider;
+  staleThresholdSeconds?: number;
+  staleCheckIntervalSeconds?: number;
 };
 
 export async function createHeraldServer(args: HeraldServerArgs) {
@@ -29,13 +32,32 @@ export async function createHeraldServer(args: HeraldServerArgs) {
     console.error(err);
     throw err;
   }
-  console.log(`Herald server now listening on port ${args.port}`);
 
   const taskQueue = fastq.promise(
     { storage: args.storage, server, subscriptions },
     processMessageForSubscriber,
     1
   );
+
+  setInterval(async () => {
+    const stale = await args.storage.getStaleSubscriberMessages(
+      args.staleThresholdSeconds
+    );
+    if (stale.length > 0) {
+      console.warn(`Found ${stale.length} stale messages`);
+
+      for (let i = 0; i < stale.length; i++) {
+        await args.storage.updateSubscriberMessage(
+          stale[i].messageId,
+          stale[i].subscriberId,
+          {
+            state: MessageStates.ERROR,
+            errorText: 'Timeout',
+          }
+        );
+      }
+    }
+  }, (args.staleCheckIntervalSeconds || 60) * 1000);
 
   server.on('connect', async (socket) => {
     socket.use((ev, next) => {
