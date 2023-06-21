@@ -55,6 +55,10 @@ export async function createHeraldServer(args: HeraldServerArgs) {
             errorText: 'Timeout',
           }
         );
+
+        if (stale[i].errors < 3) {
+          taskQueue.push(stale[i]);
+        }
       }
     }
   }, (args.staleCheckIntervalSeconds || 60) * 1000);
