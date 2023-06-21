@@ -24,3 +24,6 @@ jobs:
 
       - name: 💪🏼 Install Package Dependencies
         run: npm ci
+
+      - name: Build Client
+        run: npx nx run client:build
