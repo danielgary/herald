@@ -11,6 +11,17 @@
         "lintFilePatterns": ["client/**/*.ts"]
       }
     },
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "options": {
+        "generatePackageJson": true,
+        "compiler": "tsc",
+        "main": "client/src/index.ts",
+        "tsConfig": "client/tsconfig.lib.json",
+        "target": "node",
+        "outputPath": "dist/client"
+      }
+    },
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
