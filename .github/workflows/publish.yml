@@ -32,4 +32,4 @@ jobs:
         run: echo TAG_VERSION=$(echo ${{ github.ref_name }} | cut -c 2-10) >> $GITHUB_ENV
 
       - name: Set version in package.json
-        run: echo $TAG_VERSION
+        run: echo ${{env.TAG_VERSION}}
