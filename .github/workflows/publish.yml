@@ -4,7 +4,7 @@ on:
     branches:
       - master
     tags:
-      - '*.*.*'
+      - 'v*.*.*'
 
 jobs:
   publish:
@@ -27,3 +27,9 @@ jobs:
 
       - name: Build Client
         run: npx nx run client:build
+
+      - name: Get version number
+        run: echo TAG_VERSION=${{ github.ref_name }} | cut -c 2-10 >> $
+
+      - name: Set version in package.json
+        run: echo $TAG_VERSION
