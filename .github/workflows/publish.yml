@@ -29,7 +29,7 @@ jobs:
         run: npx nx run client:build
 
       - name: Get version number
-        run: echo TAG_VERSION=${{ github.ref_name }} | cut -c 2-10 >> $
+        run: echo TAG_VERSION=${{ github.ref_name }} | cut -c 2-10 >> $GITHUB_OUTPUT
 
       - name: Set version in package.json
         run: echo $TAG_VERSION
